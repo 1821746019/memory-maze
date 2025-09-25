@@ -62,3 +62,30 @@ try:
 except ImportError:
     print('memory_maze: gym environments not registered.')
     raise
+
+import logging
+
+class MultiMessageFilter(logging.Filter):
+    """
+    过滤掉任何包含指定文本片段之一的日志消息。
+    """
+    def __init__(self, patterns_to_block):
+        super().__init__()
+        # 确保 patterns_to_block 是一个列表或元组
+        if not isinstance(patterns_to_block, (list, tuple)):
+            patterns_to_block = [patterns_to_block]
+        self.patterns_to_block = patterns_to_block
+
+    def filter(self, record):
+        message = record.getMessage()
+        # 检查消息中是否包含任何一个要屏蔽的模式
+        return not any(pattern in message for pattern in self.patterns_to_block)
+
+# 要屏蔽的警告列表
+block_list = [
+    "Cannot set velocity on Entity with no free joint.",
+]
+# 获取 logger 并添加新的过滤器
+absl_logger = logging.getLogger('absl')
+multi_filter = MultiMessageFilter(block_list)
+absl_logger.addFilter(multi_filter)
